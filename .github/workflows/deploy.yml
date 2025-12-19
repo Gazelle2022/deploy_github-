@@ -41,10 +41,10 @@ jobs:
 
       - name: Deploy
         run: |
-          rsync -avz dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }  
+          rsync -avz dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}  
       - name: Ping the deployed site
 
         run: |
           curl -f http://${{ secrets.SSH_HOST }}/health.html
           echo "Site is up and running!"
-          
+
