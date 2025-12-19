@@ -6,22 +6,15 @@ on:
 
 jobs:
   build:
-    name: Build & Prepare Website
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Build site
         run: |
-          mkdir -p dist
-          cp index.html style.css health.html dist/
-
-      - name: Check dist content
-        run: |
-          echo "Files in dist:"
-          ls -la dist
+          mkdir dist
+          cp index.html style.css dist/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -30,13 +23,11 @@ jobs:
           path: dist
 
   deploy:
-    name: Deploy to Production Server
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: site
           path: dist
@@ -48,17 +39,11 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy site
+      - name: Deploy
         run: |
           rsync -avz dist/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
-
-      - name: Ping the deployed site (server-side)
+#ajouter un job
+      - name: Notify deployment
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
-            if curl -f http://localhost/health.html; then
-              echo "Site is up and running!"
-            else
-              echo "Health page not found!"
-              exit 1
-            fi
-          EOF
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Website deployed successfully!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+            
